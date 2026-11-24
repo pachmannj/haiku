@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haiku — Jindřich Pachmann</title>
+<meta name="description" content="Haiku a typogramy: fotografie z cesty přepsané písmem Andulka do prostoru.">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<style>
+@font-face { font-family: 'Hanken Grotesk'; font-weight: 300 600; font-display: swap; src: url('fonts/HankenGrotesk-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+@font-face { font-family: 'Hanken Grotesk'; font-weight: 300 600; font-display: swap; src: url('fonts/HankenGrotesk-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2190-2193; }
+:root { --ink: #EDEAE4; --mute: rgba(237,234,228,.5); --rule: rgba(237,234,228,.14); --signal: #5C78FF; --bg: #0a0909; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font: 400 14px/1.5 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+html { scrollbar-width: none; }
+body::-webkit-scrollbar { display: none; }
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#track { width: 1px; }
+.vign { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(5,4,4,.55) 100%); }
+.verse { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; fill: var(--ink); z-index: 1; }
+.write path { stroke: var(--ink); stroke-width: 12; stroke-dasharray: 1 1; stroke-dashoffset: 1; fill-opacity: 0; animation: 1.8s cubic-bezier(.45,0,.3,1) both; }
+.write path.jp { animation-name: jp; animation-duration: 3.4s; }
+.write path.en { animation-name: en; }
+@keyframes jp { 0% { stroke-dashoffset: 1; fill-opacity: 0; stroke-opacity: 1; } 45% { stroke-dashoffset: 0; fill-opacity: 0; } 62% { fill-opacity: 1; stroke-opacity: 1; } 72% { stroke-opacity: 0; } 82% { fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 0; stroke-opacity: 0; } }
+@keyframes en { 0% { stroke-dashoffset: 1; fill-opacity: 0; stroke-opacity: 1; } 55% { stroke-dashoffset: 0; fill-opacity: 0; } 80% { fill-opacity: 1; stroke-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; stroke-opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .write path { animation: none; stroke: none; fill-opacity: 1; } .write path.jp { fill-opacity: 0; } }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.cap { font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--mute); }
+.ui { position: fixed; z-index: 2; }
+.pill { background: rgba(20,18,18,.5); box-shadow: inset 0 0 0 1px var(--rule); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 99px; }
+.back { left: 16px; top: 16px; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px 0 10px; font-size: 13px; color: rgba(237,234,228,.75); transition: color .2s; }
+.back:hover { color: var(--ink); }
+.back svg, .ctrl svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.ctrl { left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 2px; padding: 3px; }
+.ctrl button { height: 32px; min-width: 32px; padding: 0 12px; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-size: 12px; letter-spacing: .03em; color: rgba(237,234,228,.66); transition: color .2s, background .2s; }
+.ctrl button:hover { color: var(--ink); background: rgba(237,234,228,.07); }
+.ctrl button b { font-weight: 400; color: var(--ink); }
+.ctrl .sep { width: 1px; margin: 8px 3px; background: var(--rule); }
+.dots { display: inline-flex; gap: 3px; }
+.dots i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .3; }
+.dots i.on { opacity: 1; }
+.nav { right: 16px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.nav button { font-size: 13px; letter-spacing: .06em; padding: 6px 8px; transition: color .2s, opacity .4s; }
+.nav .cur { color: var(--ink); }
+.nav .nx { color: rgba(237,234,228,.38); }
+.nav button:hover { color: var(--signal); }
+.nav .ln { width: 1px; height: 26px; background: var(--rule); transition: opacity .4s; }
+.nav.intro .cur, .nav.intro .ln { opacity: 0; pointer-events: none; }
+.load { left: 50%; top: 50%; transform: translate(-50%, -50%); transition: opacity .6s; }
+.hide { opacity: 0; pointer-events: none; }
+.embed .back { display: none; }
+@media (max-width: 640px) {
+  .nav { right: 6px; }
+  .ctrl button { height: 38px; padding: 0 12px; }
+}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label="Typogramy a haiku v prostoru"></canvas>
+<div class="vign"></div>
+<svg class="verse" id="verse" aria-hidden="true"></svg>
+<div class="sr" id="sr"></div>
+<div id="track"></div>
+<a class="ui back pill" href="../"><svg viewBox="0 0 16 16"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg><span>Portfolio</span></a>
+<nav class="ui nav intro" id="nav" aria-label="Zastávky">
+  <button class="cur" id="cur" aria-label="Aktuální / předchozí"></button>
+  <span class="ln"></span>
+  <button class="nx" id="next" aria-label="Další"></button>
+</nav>
+<div class="ui load cap" id="load">skládám znaky…</div>
+<div class="ui ctrl pill" id="ctrl">
+  <button data-a="density" title="Hustota typogramu"><svg viewBox="0 0 16 16"><path d="M3 3.5h10M3 6.5h10M3 9.5h10M3 12.5h10"/></svg><span class="dots" id="dens"><i></i><i></i><i></i></span></button>
+</div>
+<script>
+/* ============================================================
+   HAIKU — typogramy z fotografií jako průchod prostorem (WebGL2)
+   každá fotka se přepíše textem svého haiku v Andulce: jas → velikost
+   a sytost písmene, barva → barva fotky,
+   jas po rozmazání → reliéf do hloubky. Skrolování = kamera.
+   ============================================================ */
+
+/* ---------- obsah: fotka a její haiku ----------
+   Znaky, které nejsou v atlasu, se nahradí tečkou — po přidání
+   neobvyklých znaků spusť tools/haiku-atlas/bake.py */
+const STANICE = [
+  { foto: 'foto/01-hvezdy.jpg',     haiku: ['The night sky is clear', 'the Milky Way slowly turns', 'and tomorrow comes'] },
+  { foto: 'foto/02-naprstniky.jpg', haiku: ['Full of summer hues', 'poisonous bells are ringing', 'pretty and deadly'] },
+  { foto: 'foto/03-boure.jpg',      haiku: ['Summer storm running', 'on the wind, seeking a time', 'that is yet to come'] },
+  { foto: 'foto/04-listi.jpg',      haiku: ['Spring leaves under sky', 'full of this moment’s feeling', 'leaf falling on leaf'] },
+  { foto: 'foto/05-kameny.jpg',     haiku: ['A wide sea of stones', 'rolling, running like a wave', 'down through the mountain'] },
+];
+const TITUL = ['俳句', 'haiku'];          // úvod: nejdřív japonsky, pak anglicky
+const VYPLN = 'haiku·typogram·';          // text verše, dokud fotka nemá haiku
+
+/* ---------- prostor ---------- */
+const W = 40;            // šířka typogramu v jednotkách
+const GAP = 55;          // vzdálenost zastávek do hloubky
+const VIEW = 30;         // vzdálenost kamery od zastávky
+const FOV = 50 * Math.PI / 180;
+const DENS = [16, 11, 7.5];  // velikost buňky znaku v px na obrazovce
+const STRIDE = 14;       // float na znak: pos3 rnd4 col3 gly size lum (+1 rezerva)
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const cv = document.getElementById('cv');
+const gl = cv.getContext('webgl2', { antialias: true, alpha: false, premultipliedAlpha: false });
+const $ = id => document.getElementById(id);
+if (window.top !== window.self) document.body.classList.add('embed');   // v náhledu v portfoliu bez tlačítka zpět
+if (!gl) { $('load').textContent = 'prohlížeč nepodporuje WebGL2'; throw 0; }
+
+/* ---------- shadery ---------- */
+const VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 a_corner;
+layout(location=1) in vec3 a_pos;
+layout(location=2) in vec4 a_rnd;
+layout(location=3) in vec3 a_col;
+layout(location=4) in float a_gly;
+layout(location=5) in vec2 a_sl;
+uniform mat4 u_vp;
+uniform vec3 u_cam;
+uniform vec4 u_st;      // pozice zastávky, rotace Y
+uniform vec3 u_sa;      // měřítko, složení, směr toku
+uniform float u_time, u_scatter;
+uniform vec2 u_grid;
+out vec2 v_uv; out vec4 v_col;
+
+vec2 cellUV(float g, vec2 c) {
+  float col = mod(g, u_grid.x), row = floor(g / u_grid.x);
+  return vec2(col + c.x + .5, row + .5 - c.y) / u_grid;
+}
+void main() {
+  float lum = a_sl.y;
+  float flow = u_sa.z;   // 1 = znaky odlétají ke kameře, 0 = přilétají na místo
+  // každé písmeno má vlastní okno → skládají se postupně, jedno po druhém
+  float t = clamp(u_sa.y * 2.4 - a_rnd.w * 1.4, 0., 1.);
+  t = t < .5 ? 4. * t * t * t : 1. - pow(-2. * t + 2., 3.) * .5;
+  float sc = 1. - t;
+
+  vec3 p = a_pos * u_sa.x;
+  p.z += sin(u_time * .7 + a_rnd.w * 6.2832) * .05 * u_sa.x;
+  // rozlet: do šířky a ke kameře, po spirále
+  vec3 dir = vec3(a_rnd.x * 30., a_rnd.y * 22., a_rnd.z * 52. + 4.);
+  float sw = sc * sc * mix(-1.6, 1.3, flow);
+  dir.xy = mat2(cos(sw), sin(sw), -sin(sw), cos(sw)) * dir.xy;
+  dir.xy += vec2(sin(u_time * .31 + a_rnd.w * 9.), cos(u_time * .27 + a_rnd.w * 7.)) * 2.5;
+  p += dir * sc * u_scatter;
+
+  // písmena se při rozletu zvětšují, při příletu z velkých zmenšují na místo
+  float grow = 1. + sc * mix(1.2, 2.4, flow);
+  float size = a_sl.x * (.3 + 1.15 * lum) * u_sa.x * grow;
+  float ang = (a_rnd.x * 3. + a_rnd.y * 2.) * sc * sc;
+  vec2 c = mat2(cos(ang), sin(ang), -sin(ang), cos(ang)) * a_corner * size;
+  p.xy += c;
+
+  float cr = cos(u_st.w), sr = sin(u_st.w);
+  vec3 w = vec3(cr * p.x + sr * p.z, p.y, -sr * p.x + cr * p.z) + u_st.xyz;
+
+  float d = length(w - u_cam);
+  float fade = smoothstep(1.5, 7., d) * (1. - smoothstep(48., 115., d)) * (1. - mix(.55, .35, flow) * sc);
+  // přilétající písmena se objeví až za letu — při zastavení nerozptylují
+  fade *= mix(smoothstep(1., .72, sc), 1., flow);
+  // znak těsně u kamery by byl obří a rozmazaný → rozplyne se
+  fade *= 1. - smoothstep(.1, .26, size / d);
+  float alpha = (.22 + .78 * lum) * fade;
+
+  v_col = vec4(a_col * 1.15, alpha);
+  v_uv = cellUV(a_gly, a_corner);
+  gl_Position = alpha < .003 ? vec4(2., 2., 2., 1.) : u_vp * vec4(w, 1.);
+}`;
+
+const FS = `#version 300 es
+precision mediump float;
+uniform sampler2D u_atlas;
+in vec2 v_uv; in vec4 v_col;
+out vec4 o;
+void main() {
+  float g = texture(u_atlas, v_uv).r;
+  float a = g * v_col.a;
+  if (a < .004) discard;
+  o = vec4(v_col.rgb * a, a);
+}`;
+
+function shader(type, src) {
+  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, shader(gl.VERTEX_SHADER, VS));
+gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FS));
+gl.linkProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+gl.useProgram(prog);
+const U = {};
+for (const n of ['u_vp', 'u_cam', 'u_st', 'u_sa', 'u_time', 'u_scatter', 'u_grid', 'u_atlas']) U[n] = gl.getUniformLocation(prog, n);
+
+const vao = gl.createVertexArray();
+gl.bindVertexArray(vao);
+const quad = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-.5, -.5, .5, -.5, -.5, .5, .5, .5]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0);
+gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+const inst = gl.createBuffer();
+const LAYOUT = [[1, 3, 0], [2, 4, 3], [3, 3, 7], [4, 1, 10], [5, 2, 11]];
+for (const [loc] of LAYOUT) { gl.enableVertexAttribArray(loc); gl.vertexAttribDivisor(loc, 1); }
+function bindFrom(first) {
+  gl.bindBuffer(gl.ARRAY_BUFFER, inst);
+  for (const [loc, n, off] of LAYOUT) gl.vertexAttribPointer(loc, n, gl.FLOAT, false, STRIDE * 4, (first * STRIDE + off) * 4);
+}
+
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+gl.clearColor(10 / 255, 9 / 255, 9 / 255, 1);
+
+/* ---------- načtení ---------- */
+const loadImg = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
+
+let atlas, vectors, stops = [], data, density = 1, genW = 0;
+
+Promise.all([
+  fetch('atlas.json').then(r => r.json()),
+  loadImg('atlas.png'),
+  fetch('vektory.json').then(r => r.json()),
+  ...STANICE.map(s => loadImg(s.foto)),
+]).then(([json, aimg, vec, ...photos]) => {
+  atlas = json; vectors = vec;
+  const tex = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, aimg);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  const aniso = gl.getExtension('EXT_texture_filter_anisotropic');
+  if (aniso) gl.texParameterf(gl.TEXTURE_2D, aniso.TEXTURE_MAX_ANISOTROPY_EXT, 4);
+  gl.uniform1i(U.u_atlas, 0);
+  gl.uniform2f(U.u_grid, atlas.cols, atlas.rows);
+  buildStops(photos);
+  generate();
+  resize();
+  const start = +location.hash.slice(1);   // #3 = rovnou na třetí zastávku
+  if (start) scrollTo(0, stopY(Math.min(start, stops.length - 1)));
+  q = qTarget();
+  $('load').classList.add('hide');
+  requestAnimationFrame(frame);
+}).catch(e => { $('load').textContent = 'nepodařilo se načíst'; console.error(e); });
+
+/* ---------- znaky ---------- */
+const glyph = ch => (atlas.glyphs[ch] || atlas.glyphs['·'])[0];
+
+// náhodný směr rozletu (gaussovsky v rovině, z dopředu)
+function rnd(out, o) {
+  const g = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+  out[o] = g(); out[o + 1] = g(); out[o + 2] = Math.random(); out[o + 3] = Math.random();
+}
+
+const sampler = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+
+function typogram(stop, cols, out, at) {
+  const img = stop.img;
+  const rows = Math.round(cols * img.height / img.width);
+  sampler.canvas.width = cols; sampler.canvas.height = rows;
+  sampler.imageSmoothingQuality = 'high';
+  sampler.drawImage(img, 0, 0, cols, rows);
+  const px = sampler.getImageData(0, 0, cols, rows).data;
+  const n = cols * rows, lum = new Float32Array(n);
+  for (let i = 0; i < n; i++) lum[i] = (px[i * 4] * .2126 + px[i * 4 + 1] * .7152 + px[i * 4 + 2] * .0722) / 255;
+
+  // natažení kontrastu mezi 2. a 98. percentilem
+  const sorted = Float32Array.from(lum).sort();
+  const lo = sorted[Math.floor(n * .02)], hi = sorted[Math.floor(n * .98)], span = Math.max(hi - lo, .05);
+  for (let i = 0; i < n; i++) lum[i] = Math.min(1, Math.max(0, (lum[i] - lo) / span));
+
+  // reliéf: rozmazaný jas → hloubka
+  const r = Math.max(2, Math.round(cols / 36));
+  const tmp = new Float32Array(n), blur = new Float32Array(n);
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    let s = 0, k = 0;
+    for (let d = -r; d <= r; d++) { const xx = x + d; if (xx >= 0 && xx < cols) { s += lum[y * cols + xx]; k++; } }
+    tmp[y * cols + x] = s / k;
+  }
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    let s = 0, k = 0;
+    for (let d = -r; d <= r; d++) { const yy = y + d; if (yy >= 0 && yy < rows) { s += tmp[yy * cols + x]; k++; } }
+    blur[y * cols + x] = s / k;
+  }
+
+  const verse = stop.verse.map(glyph);
+  const cell = W / cols, H = cell * rows, depth = W * .14;
+  stop.w = W; stop.h = H;
+  let o = at * STRIDE, count = 0;
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const i = y * cols + x, l = lum[i];
+    out[o] = (x + .5) * cell - W / 2;
+    out[o + 1] = H / 2 - (y + .5) * cell;
+    out[o + 2] = (blur[i] - .5) * depth + (l - blur[i]) * depth * .35;
+    rnd(out, o + 3);
+    let cr = px[i * 4] / 255, cg = px[i * 4 + 1] / 255, cb = px[i * 4 + 2] / 255;
+    const mx = Math.max(cr, cg, cb, .12), lift = .55 + .45 / mx;
+    const gray = (cr + cg + cb) / 3;
+    out[o + 7] = Math.min(1, (gray + (cr - gray) * 1.15) * lift);
+    out[o + 8] = Math.min(1, (gray + (cg - gray) * 1.15) * lift);
+    out[o + 9] = Math.min(1, (gray + (cb - gray) * 1.15) * lift);
+    out[o + 10] = verse[i % verse.length];
+    out[o + 11] = cell * 1.7;
+    out[o + 12] = l;
+    o += STRIDE; count++;
+  }
+  return count;
+}
+
+/* ---------- haiku ve vektorech ----------
+   písmena jsou obrysy Andulky (SVG nad scénou); každé letí stejně
+   jako znaky typogramu, jen se kreslí ostře v jakékoli velikosti */
+const SVGNS = 'http://www.w3.org/2000/svg';
+const LINE = 1.6;   // řádkování v em
+
+function textBlock(stop) {
+  const vg = vectors.glyphs, upm = vectors.upm;
+  const lines = stop.lines.map(({ t, e, cls }) => {
+    const chars = [...t].map(ch => vg[ch] ? ch : '·');
+    const adv = chars.map(ch => vg[ch][1] / upm * e);
+    return { chars, e, cls, adv, lw: adv.reduce((a, b) => a + b, 0) };
+  });
+  const w = Math.max(...lines.map(l => l.lw));
+  // overlay: řádky leží přes sebe (úvod 俳句 → haiku), jinak pod sebou
+  const h = stop.overlay ? Math.max(...lines.map(l => l.e * LINE)) : lines.reduce((a, l) => a + l.e * LINE, 0);
+  const g = document.createElementNS(SVGNS, 'g');
+  g.style.display = 'none';
+  stop.letters = [];
+  let top = h / 2;
+  for (const ln of lines) {
+    const base = top - ln.e * LINE / 2 - ln.e * (ln.cls === 'jp' ? .38 : .32);   // opticky na střed řádku
+    if (!stop.overlay) top -= ln.e * LINE;
+    let x = stop.align < 0 ? -w / 2 : stop.align > 0 ? w / 2 - ln.lw : -ln.lw / 2;
+    ln.chars.forEach((ch, k) => {
+      const cx = x + ln.adv[k] / 2;
+      x += ln.adv[k];
+      if (ch === ' ') return;
+      const el = document.createElementNS(SVGNS, 'path');
+      el.setAttribute('d', vg[ch][0]);
+      if (ln.cls) {   // psaní: obrys se protáhne tahem, pak se písmeno zaplní
+        el.setAttribute('class', ln.cls);
+        el.setAttribute('pathLength', 1);
+        el.style.animationDelay = (ln.cls === 'jp' ? .3 + k * .45 : 3.9 + k * .2) + 's';
+      }
+      g.appendChild(el);
+      const r = new Float32Array(4); rnd(r, 0);
+      stop.letters.push({ x: cx, y: base, e: ln.e, half: vg[ch][1] / 2, r, el });
+    });
+  }
+  if (stop.overlay) g.setAttribute('class', 'write');
+  $('verse').appendChild(g);
+  stop.g = g; stop.w = w; stop.h = h;
+}
+
+// stejný let jako ve vertex shaderu, jen spočítaný pro každé písmeno zvlášť
+function drawText(s, a, flow, vp, cam, time) {
+  const scale = s.scale, upm = vectors.upm, f = 1 / Math.tan(FOV / 2);
+  const cr = Math.cos(s.rot), sr = Math.sin(s.rot), scat = reduced ? .35 : 1;
+  for (const L of s.letters) {
+    const r = L.r;
+    let t = Math.min(1, Math.max(0, a * 2.4 - r[3] * 1.4));
+    t = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) * .5;
+    const sc = 1 - t;
+    let dx = r[0] * 30, dy = r[1] * 22;
+    const dz = r[2] * 52 + 4, sw = sc * sc * (-1.6 + 2.9 * flow);
+    [dx, dy] = [Math.cos(sw) * dx - Math.sin(sw) * dy, Math.sin(sw) * dx + Math.cos(sw) * dy];
+    dx += Math.sin(time * .31 + r[3] * 9) * 2.5;
+    dy += Math.cos(time * .27 + r[3] * 7) * 2.5;
+    const k = sc * scat * .6;
+    const px = (L.x + s.offX) * scale + dx * k, py = L.y * scale + dy * k;
+    const pz = Math.sin(time * .7 + r[3] * 6.2832) * .05 * scale + dz * k;
+    const wx = cr * px + sr * pz + s.pos[0], wy = py + s.pos[1], wz = -sr * px + cr * pz + s.pos[2];
+
+    const cw = vp[3] * wx + vp[7] * wy + vp[11] * wz + vp[15];
+    const em = L.e * scale * (1 + sc * (1.2 + 1.2 * flow) * .45);
+    const d = Math.hypot(wx - cam[0], wy - cam[1], wz - cam[2]);
+    let alpha = smooth(1.5, 7, d) * (1 - smooth(48, 115, d)) * (1 - (.55 - .2 * flow) * sc);
+    if (!flow) alpha *= 1 - smooth(.72, 1, sc);
+    alpha *= 1 - smooth(.06, .16, em / d - L.e * scale / VIEW);   // jen to, co v letu přeroste klidovou velikost
+    if (cw < .5 || alpha < .003) { L.el.setAttribute('opacity', 0); continue; }
+
+    const sx = ((vp[0] * wx + vp[4] * wy + vp[8] * wz + vp[12]) / cw * .5 + .5) * innerWidth;
+    const sy = (.5 - (vp[1] * wx + vp[5] * wy + vp[9] * wz + vp[13]) / cw * .5) * innerHeight;
+    const px2 = em * f * innerHeight / 2 / cw / upm;
+    const ang = -(r[0] * 3 + r[1] * 2) * sc * sc * 57.2958;
+    L.el.setAttribute('transform', `translate(${sx.toFixed(2)} ${sy.toFixed(2)}) rotate(${ang.toFixed(2)}) scale(${px2.toFixed(5)} ${(-px2).toFixed(5)}) translate(${-L.half} 0)`);
+    L.el.setAttribute('opacity', alpha.toFixed(3));
+  }
+}
+
+/* ---------- zastávky ---------- */
+function buildStops(photos) {
+  stops = [{ kind: 'text', lines: [{ t: TITUL[0], e: 2.2, cls: 'jp' }, { t: TITUL[1], e: 2.4, cls: 'en' }], align: 0, overlay: true }];
+  STANICE.forEach((s, i) => {
+    const text = s.haiku && s.haiku.join('').replace(/[\s·.]/g, '') ? s.haiku.join(' ').replace(/\s+/g, '·') + '·' : VYPLN;
+    stops.push({ kind: 'foto', img: photos[i], verse: [...text], n: i });
+    // cik cak: liché haiku vlevo, sudé vpravo
+    if (s.haiku) stops.push({ kind: 'text', lines: s.haiku.map(t => ({ t, e: 1 })), n: i, align: i % 2 ? 1 : -1 });
+  });
+  stops.filter(s => s.kind === 'text').forEach(textBlock);
+  $('sr').innerHTML = STANICE.map(s => `<p>${s.haiku.join('<br>')}</p>`).join('');
+  stops.forEach((s, k) => {
+    s.pos = [Math.sin(k * 1.1) * 10, Math.sin(k * .7 + 1) * 2.5, -k * GAP];
+    s.rot = Math.sin(k * 1.1 + .5) * .2;
+    s.cam = [s.pos[0] + Math.sin(s.rot) * VIEW, s.pos[1], s.pos[2] + Math.cos(s.rot) * VIEW];
+  });
+}
+
+// počet sloupců podle toho, jak velký bude znak na obrazovce
+function colsFor(s) {
+  const px = s.scale * W / (2 * halfW()) * innerWidth;
+  return Math.max(28, Math.min(220, Math.round(px / DENS[density])));
+}
+
+function generate() {
+  fit();
+  let total = 0;
+  for (const s of stops) {
+    if (s.kind === 'foto') { s.cols = colsFor(s); total += s.cols * Math.round(s.cols * s.img.height / s.img.width); }
+  }
+  data = new Float32Array(total * STRIDE);
+  let at = 0;
+  for (const s of stops) { s.first = at; s.count = s.kind === 'foto' ? typogram(s, s.cols, data, at) : 0; at += s.count; }
+  gl.bindBuffer(gl.ARRAY_BUFFER, inst);
+  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  document.querySelectorAll('#dens i').forEach((d, i) => d.classList.toggle('on', i <= density));
+  fit();
+  genW = innerWidth;
+}
+
+// velikost zastávky tak, aby se vešla do záběru
+const halfH = () => VIEW * Math.tan(FOV / 2);
+const halfW = () => halfH() * innerWidth / Math.max(1, innerHeight);
+function fit() {
+  const small = innerWidth < 640;
+  for (const s of stops) {
+    if (s.kind === 'foto') { s.w = W; s.h = W * s.img.height / s.img.width; }
+    const fw = (small ? .94 : .8) * 2 * halfW() / s.w, fh = .8 * 2 * halfH() / s.h;
+    s.scale = s.kind === 'foto' ? Math.min(fw, fh) : Math.min(1, fw * (s.align ? .8 : 1), fh);
+    // haiku přiražené k levému / pravému okraji záběru
+    const edge = halfW() * (small ? (s.align > 0 ? .7 : .86) : .76);   // vpravo místo pro čísla
+    s.offX = s.align ? s.align * (edge - s.w * s.scale / 2) / s.scale : 0;
+  }
+}
+
+/* ---------- matice ---------- */
+function perspective(fovy, aspect, near, far) {
+  const f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+  return [f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0];
+}
+function lookAt(e, t) {
+  let z = [e[0] - t[0], e[1] - t[1], e[2] - t[2]], l = Math.hypot(...z); z = z.map(v => v / l);
+  let x = [z[2], 0, -z[0]]; l = Math.hypot(...x); x = x.map(v => v / l);
+  const y = [z[1] * x[2] - z[2] * x[1], z[2] * x[0] - z[0] * x[2], z[0] * x[1] - z[1] * x[0]];
+  const d = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  return [x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -d(x, e), -d(y, e), -d(z, e), 1];
+}
+function mul(a, b) {
+  const o = new Array(16);
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+    let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k]; o[c * 4 + r] = s;
+  }
+  return o;
+}
+function catmull(pts, t) {
+  const n = pts.length - 1, i = Math.min(n - 1, Math.max(0, Math.floor(t))), f = t - i;
+  const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[Math.min(n, i + 1)], p3 = pts[Math.min(n, i + 2)];
+  const f2 = f * f, f3 = f2 * f;
+  return [0, 1, 2].map(k => .5 * (2 * p1[k] + (p2[k] - p0[k]) * f + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * f2 + (3 * p1[k] - p0[k] - 3 * p2[k] + p3[k]) * f3));
+}
+const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+/* ---------- ovládání ---------- */
+const STEP = 1.6;   // kolik výšek okna se skroluje na jednu zastávku — víc = pomalejší průchod
+let vh = innerHeight, q = 0;
+const mouse = [0, 0], mouseS = [0, 0];
+const stopY = k => k * vh * STEP;
+const qTarget = () => Math.min(stops.length - 1, scrollY / (vh * STEP));
+
+function resize() {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
+  gl.viewport(0, 0, cv.width, cv.height);
+  vh = Math.max(1, innerHeight);   // skryté okno hlásí 0
+  $('track').style.height = stopY(stops.length - 1) + innerHeight + 'px';
+  fit();
+}
+let lastW = innerWidth;
+addEventListener('resize', () => {
+  const k = q; resize();
+  if (innerWidth !== lastW) { lastW = innerWidth; scrollTo(0, stopY(k)); }   // ne při schování lišty na mobilu
+  clearTimeout(regen);
+  regen = setTimeout(() => { if (Math.abs(innerWidth - genW) > 80) generate(); }, 250);
+});
+let regen;
+addEventListener('pointermove', e => { mouse[0] = e.clientX / innerWidth * 2 - 1; mouse[1] = e.clientY / innerHeight * 2 - 1; });
+
+$('ctrl').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.a === 'density') { density = (density + 1) % DENS.length; generate(); }
+});
+
+/* číslo zastávky a číslo další — typogram i jeho haiku mají stejné číslo */
+const pad = n => String(n).padStart(2, '0');
+const go = k => scrollTo({ top: stopY(k), behavior: reduced ? 'auto' : 'smooth' });
+const fotoStop = n => stops.findIndex(s => s.kind === 'foto' && s.n === n);   // n od 0
+let curN = 0;   // 0 = úvod, 1… = číslo typogramu
+$('next').onclick = () => go(curN >= STANICE.length ? 0 : fotoStop(curN));
+$('cur').onclick = () => {
+  const here = fotoStop(curN - 1);
+  go(Math.round(q) > here ? here : Math.max(0, fotoStop(curN - 2)));
+};
+
+let lastActive = -1;
+function ui(qe) {
+  const k = Math.round(qe);
+  if (k === lastActive) return;
+  lastActive = k;
+  curN = k === 0 ? 0 : stops[k].n + 1;
+  $('cur').textContent = pad(curN);
+  $('next').textContent = pad(curN >= STANICE.length ? 1 : curN + 1);
+  $('nav').classList.toggle('intro', k === 0);
+}
+
+/* ---------- smyčka ---------- */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  const time = reduced ? 0 : now / 1000;
+  q += (qTarget() - q) * (1 - Math.exp(-dt * 2.2));
+  // mírné zpomalení u zastávek, ale bez skoku uprostřed — průchod teče
+  const i = Math.floor(q), f = q - i, qe = i + f + (smooth(0, 1, f) - f) * .6;
+  for (const k of [0, 1]) mouseS[k] += (mouse[k] - mouseS[k]) * (1 - Math.exp(-dt * 2.5));
+
+  const cam = catmull(stops.map(s => s.cam), qe);
+  const look = catmull(stops.map(s => s.pos), qe);
+  cam[0] += mouseS[0] * 1.6 + Math.sin(time * .21) * .3;
+  cam[1] += -mouseS[1] * 1 + Math.sin(time * .17) * .2;
+  const vp = mul(perspective(FOV, cv.width / cv.height, .1, 200), lookAt(cam, look));
+
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.uniformMatrix4fv(U.u_vp, false, vp);
+  gl.uniform3fv(U.u_cam, cam);
+  gl.uniform1f(U.u_time, time);
+  gl.uniform1f(U.u_scatter, reduced ? .35 : 1);
+
+  // od nejvzdálenější k nejbližší — průhlednost se skládá správně
+  const lo = Math.max(0, Math.floor(qe) - 1), hi = Math.min(stops.length - 1, Math.ceil(qe) + 2);
+  stops.forEach((s, k) => { if (s.g) s.g.style.display = k < lo || k > hi ? 'none' : ''; });
+  for (let k = hi; k >= lo; k--) {
+    const s = stops[k], d = qe - k;
+    // rozpad přes většinu cesty k další zastávce, skládání přes celý přílet
+    const a = d >= 0 ? 1 - smooth(.04, .72, d) : 1 - smooth(.02, .98, -d);
+    const flow = d >= 0 ? 1 : 0;
+    if (s.kind === 'text') { drawText(s, a, flow, vp, cam, time); continue; }
+    gl.uniform4f(U.u_st, s.pos[0], s.pos[1], s.pos[2], s.rot);
+    gl.uniform3f(U.u_sa, s.scale, a, flow);
+    bindFrom(s.first);
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, s.count);
+  }
+  ui(qe);
+  requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
